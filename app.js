@@ -250,7 +250,9 @@ function closeAllModals() {
 function showLanding() {
   $("#screen-editor").classList.add("hidden");
   $("#screen-landing").classList.remove("hidden");
-  $("#hamburger-sheet").classList.remove("open");
+  const sheet = $("#hamburger-sheet");
+  sheet.classList.remove("open");
+  sheet.classList.add("hidden");
 }
 
 function showEditor() {
@@ -261,12 +263,17 @@ function showEditor() {
 
 function openHamburger() {
   renderPlanList();
-  $("#hamburger-sheet").classList.add("open");
+  const sheet = $("#hamburger-sheet");
+  sheet.classList.remove("hidden");
+  void sheet.offsetWidth;
+  sheet.classList.add("open");
   $("#backdrop").classList.remove("hidden");
 }
 
 function closeHamburger() {
-  $("#hamburger-sheet").classList.remove("open");
+  const sheet = $("#hamburger-sheet");
+  sheet.classList.remove("open");
+  sheet.classList.add("hidden");
   if (!document.querySelector(".modal:not(.hidden)")) $("#backdrop").classList.add("hidden");
 }
 
