@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#1b2735" />
+  <title>Timetable Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Lora:ital,wght@0,400;0,600;1,400&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <div id="screen-landing" class="screen hidden">
+      <div class="landing-panel">
+        <div class="landing-logo">TTG</div>
+        <h1>Timetable Generator</h1>
+        <p>Build weekly lesson plans by dragging subjects onto a Mon–Fri × period grid.</p>
+        <button id="landing-create" class="btn btn-primary btn-lg">Create your first timetable</button>
+      </div>
+    </div>
+
+    <div id="screen-editor" class="screen hidden">
+      <header id="app-header" class="app-header">
+        <button id="btn-hamburger" class="icon-btn" title="Plans menu" aria-label="Plans menu">&#9776;</button>
+        <input id="plan-title" class="plan-title-input" type="text" spellcheck="false" aria-label="Plan name" />
+        <div class="header-actions">
+          <button id="btn-undo" class="icon-btn" title="Undo (Ctrl+Z)" aria-label="Undo">&#8630;</button>
+          <button id="btn-redo" class="icon-btn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo">&#8631;</button>
+          <button id="btn-schedule" class="btn btn-ghost" title="Edit days and periods">Periods</button>
+          <button id="btn-theme" class="btn btn-ghost" title="Theme settings">Theme</button>
+          <button id="btn-export" class="btn btn-primary" title="Export PNG">Export</button>
+        </div>
+      </header>
+
+      <div id="editor-body" class="editor-body">
+        <aside id="catalog" class="catalog">
+          <div class="catalog-head">
+            <div class="catalog-title">Subjects</div>
+            <button id="btn-add-subject" class="icon-btn" title="Add subject" aria-label="Add subject">+</button>
+          </div>
+          <input id="catalog-search" class="catalog-search" type="search" placeholder="Search subjects…" />
+          <div id="catalog-list" class="catalog-list"></div>
+          <div class="catalog-hint">Drag a card onto the grid.<br />Drag grid items back here or onto the background to delete.</div>
+        </aside>
+
+        <main id="canvas-scroll" class="canvas-scroll">
+          <div id="canvas-wrap" class="canvas-wrap">
+            <div id="export-root" class="export-root">
+              <div id="title-band" class="title-band" contenteditable="true" spellcheck="false"></div>
+              <div id="timetable" class="timetable"></div>
+            </div>
+          </div>
+          <button id="btn-toggle-catalog" class="btn catalog-fab hidden">Subjects</button>
+        </main>
+      </div>
+    </div>
+
+    <div id="backdrop" class="backdrop hidden"></div>
+
+    <div id="hamburger-sheet" class="sheet hidden" role="dialog" aria-label="Plans">
+      <div class="sheet-head">
+        <h2>Plans</h2>
+        <button id="btn-new-plan" class="btn btn-primary">+ New plan</button>
+      </div>
+      <div id="plan-list" class="plan-list"></div>
+    </div>
+
+    <div id="wizard-modal" class="modal hidden" role="dialog" aria-label="New plan">
+      <div class="modal-card">
+        <div class="modal-head"><h2>Create a new plan</h2></div>
+        <div class="modal-body">
+          <div class="field">
+            <label for="wiz-name">Name</label>
+            <input id="wiz-name" type="text" placeholder="Class 5A" />
+          </div>
+          <div class="field">
+            <label>Weekdays</label>
+            <div id="wiz-days" class="chips"></div>
+          </div>
+          <div class="field">
+            <label for="wiz-periods">Number of periods</label>
+            <div class="stepper">
+              <button id="wiz-periods-minus" class="btn" type="button">−</button>
+              <span id="wiz-periods-value">8</span>
+              <button id="wiz-periods-plus" class="btn" type="button">+</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="wiz-start">First period starts at</label>
+            <input id="wiz-start" type="time" value="07:45" />
+          </div>
+          <div class="field">
+            <label for="wiz-len">Lesson length (minutes)</label>
+            <input id="wiz-len" type="number" value="45" min="10" max="120" step="5" />
+          </div>
+          <div class="field">
+            <label for="wiz-break">Break after each lesson (minutes)</label>
+            <input id="wiz-break" type="number" value="10" min="0" max="90" step="5" />
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button id="wiz-cancel" class="btn">Cancel</button>
+          <button id="wiz-create" class="btn btn-primary">Create plan</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="cell-editor" class="popover hidden" role="dialog" aria-label="Edit lesson"></div>
+
+    <div id="theme-modal" class="modal hidden" role="dialog" aria-label="Theme settings">
+      <div class="modal-card modal-wide">
+        <div class="modal-head"><h2>Theme</h2></div>
+        <div class="modal-body">
+          <div class="field">
+            <label>Presets</label>
+            <div id="theme-presets" class="preset-grid"></div>
+          </div>
+          <div class="field">
+            <label for="theme-title-text">Title text</label>
+            <input id="theme-title-text" type="text" placeholder="Name / class / year" />
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="theme-title-bg">Title band background</label>
+              <input id="theme-title-bg" type="color" />
+            </div>
+            <div class="field">
+              <label for="theme-title-fg">Title text color</label>
+              <input id="theme-title-fg" type="color" />
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="theme-day-bg">Day header background</label>
+              <input id="theme-day-bg" type="color" />
+            </div>
+            <div class="field">
+              <label for="theme-day-fg">Day header text</label>
+              <input id="theme-day-fg" type="color" />
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="theme-item-fg">Item text color</label>
+              <input id="theme-item-fg" type="color" />
+            </div>
+            <div class="field">
+              <label for="theme-sub-fg">Teacher / room text</label>
+              <input id="theme-sub-fg" type="color" />
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="theme-font">Font</label>
+              <select id="theme-font">
+                <option value="Inter">Inter</option>
+                <option value="Roboto">Roboto</option>
+                <option value="Lora">Lora</option>
+                <option value="Roboto Mono">Roboto Mono</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="theme-shape">Item shape</label>
+              <select id="theme-shape">
+                <option value="sharp">Rectangle</option>
+                <option value="rounded">Rounded</option>
+                <option value="pill">Pill</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="theme-grid-line">Grid line color</label>
+              <input id="theme-grid-line" type="color" />
+            </div>
+            <div class="field">
+              <label for="theme-break-line">Break line color</label>
+              <input id="theme-break-line" type="color" />
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="theme-density">Spacing density</label>
+              <select id="theme-density">
+                <option value="compact">Compact</option>
+                <option value="normal">Normal</option>
+                <option value="spacious">Spacious</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label>Page background</label>
+            <div class="bg-picker">
+              <button id="bg-type-color" class="btn">Color</button>
+              <button id="bg-type-gradient" class="btn">Gradient</button>
+              <button id="bg-type-image" class="btn">Image</button>
+            </div>
+            <div id="bg-color-row" class="field-row">
+              <div class="field"><input id="theme-page-bg" type="color" /></div>
+              <div class="field">
+                <label for="theme-page-bg2">Second color (gradient)</label>
+                <input id="theme-page-bg2" type="color" />
+              </div>
+            </div>
+            <div id="bg-image-row" class="hidden">
+              <input id="theme-page-image" type="file" accept="image/*" />
+              <button id="bg-image-clear" class="btn btn-ghost">Remove image</button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button id="theme-cancel" class="btn">Cancel</button>
+          <button id="theme-save" class="btn btn-primary">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="export-modal" class="modal hidden" role="dialog" aria-label="Export">
+      <div class="modal-card">
+        <div class="modal-head"><h2>Export PNG</h2></div>
+        <div class="modal-body">
+          <div class="field">
+            <label>Scale</label>
+            <div id="export-scale" class="segmented">
+              <button data-scale="1" class="btn active">1×</button>
+              <button data-scale="2" class="btn">2×</button>
+              <button data-scale="3" class="btn">3×</button>
+            </div>
+          </div>
+          <div class="field">
+            <label class="check"><input id="export-header" type="checkbox" checked /> Include title band / header</label>
+          </div>
+          <p class="muted">The download is faithful to what you see on screen.</p>
+        </div>
+        <div class="modal-foot">
+          <button id="export-cancel" class="btn">Cancel</button>
+          <button id="export-download" class="btn btn-primary">Download</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="schedule-modal" class="modal hidden" role="dialog" aria-label="Schedule">
+      <div class="modal-card modal-wide">
+        <div class="modal-head"><h2>Days &amp; periods</h2></div>
+        <div class="modal-body">
+          <div class="field">
+            <label>Days</label>
+            <div id="schedule-days" class="schedule-days"></div>
+            <button id="schedule-add-day" class="btn btn-ghost">+ Add day</button>
+          </div>
+          <div class="field">
+            <label>Periods</label>
+            <div id="schedule-periods" class="schedule-periods"></div>
+            <button id="schedule-add-period" class="btn btn-ghost">+ Add period</button>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button id="schedule-cancel" class="btn">Cancel</button>
+          <button id="schedule-save" class="btn btn-primary">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="confirm-dialog" class="modal hidden" role="dialog" aria-label="Confirm">
+      <div class="modal-card modal-sm">
+        <div class="modal-body" id="confirm-text"></div>
+        <div class="modal-foot">
+          <button id="confirm-cancel" class="btn">Cancel</button>
+          <button id="confirm-ok" class="btn btn-primary">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="subject-modal" class="modal hidden" role="dialog" aria-label="Subject">
+      <div class="modal-card">
+        <div class="modal-head"><h2 id="subject-modal-title">Add subject</h2></div>
+        <div class="modal-body">
+          <div class="field"><label for="subject-full">Full name</label><input id="subject-full" type="text" placeholder="Mathematics" /></div>
+          <div class="field"><label for="subject-short">Short label</label><input id="subject-short" type="text" placeholder="M" maxlength="8" /></div>
+          <div class="field"><label for="subject-color">Color</label><input id="subject-color" type="color" value="#5b8def" /></div>
+        </div>
+        <div class="modal-foot">
+          <button id="subject-cancel" class="btn">Cancel</button>
+          <button id="subject-save" class="btn btn-primary">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toasts" class="toasts"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
