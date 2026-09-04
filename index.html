@@ -34,6 +34,11 @@
         </div>
       </header>
 
+      <div id="view-toggle" class="view-toggle" role="group" aria-label="Timetable view">
+        <button data-view="fit" class="btn active" title="Fit timetable to screen">Fit</button>
+        <button data-view="wide" class="btn" title="Full width with horizontal scroll">Wide</button>
+      </div>
+
       <div id="editor-body" class="editor-body">
         <aside id="catalog" class="catalog">
           <div class="catalog-head">
@@ -239,7 +244,7 @@
           <div class="field">
             <label class="check"><input id="export-header" type="checkbox" checked /> Include title band / header</label>
           </div>
-          <p class="muted">The download is faithful to what you see on screen.</p>
+          <p class="muted">The download is always exported at full, natural width — independent of the Fit/Wide preview.</p>
         </div>
         <div class="modal-foot">
           <button id="export-cancel" class="btn">Cancel</button>
