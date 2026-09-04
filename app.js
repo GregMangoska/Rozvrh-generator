@@ -7,6 +7,38 @@ const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
 const DAY_DEFAULTS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
+const SUBJECT_COLORS = [
+  "#5b8def", "#ef8354", "#6bcb77", "#b06ab3", "#f2c94c", "#56cfe1", "#e05297",
+  "#8d6e63", "#7a9e7e", "#c17c74", "#4b7bec", "#f7a072", "#9b5de5", "#00bbf9",
+  "#06d6a0", "#ff6b6b"
+];
+
+const PRESET_SUBJECTS = [
+  ["Matematika", "M"],
+  ["Český jazyk", "ČJ"],
+  ["Společenské vědy", "SV"],
+  ["Tělesná výchova", "TV"],
+  ["Informatika", "Inf"],
+  ["Výtvarná výchova", "VV"],
+  ["Fyzika", "F"],
+  ["Chemie", "Ch"],
+  ["Přírodopis", "Př"],
+  ["Dějepis", "Dě"],
+  ["Hudební výchova", "HV"],
+  ["Anglický jazyk", "AJ"],
+  ["Zeměpis", "Z"]
+];
+
+function defaultCatalog() {
+  return PRESET_SUBJECTS.map((s, i) => ({
+    id: uid(), fullName: s[0], short: s[1], color: SUBJECT_COLORS[i % SUBJECT_COLORS.length]
+  }));
+}
+
+function subjectColorForIndex(i) {
+  return SUBJECT_COLORS[i % SUBJECT_COLORS.length];
+}
+
 const PRESETS = [
   {
     name: "Clean Light", preset: true,
@@ -238,6 +270,11 @@ function closeHamburger() {
   if (!document.querySelector(".modal:not(.hidden)")) $("#backdrop").classList.add("hidden");
 }
 
+function closeCatalogDrawer() {
+  const cat = $("#catalog");
+  if (cat.classList.contains("open")) cat.classList.remove("open");
+}
+
 function renderPlanList() {
   const list = $("#plan-list");
   list.innerHTML = "";
@@ -265,7 +302,7 @@ function createPlan(name, days, periods) {
     name: name || "Untitled",
     days: days.map((label) => ({ id: uid(), label })),
     periods,
-    catalog: [],
+    catalog: defaultCatalog(),
     grid: {},
     theme: defaultTheme(),
     createdAt: Date.now(),
@@ -330,7 +367,6 @@ function promptText(title, initial) {
     $("#subject-full").value = initial || "";
     $("#subject-full").placeholder = "Name";
     $("#subject-short").closest(".field").classList.add("hidden");
-    $("#subject-color").closest(".field").classList.add("hidden");
     $("#subject-save").dataset.mode = "text";
     openModal("#subject-modal");
     $("#subject-full").focus();
@@ -530,10 +566,8 @@ function openSubjectEditor(subjectId) {
   $("#subject-modal-title").textContent = subject ? "Edit subject" : "Add subject";
   $("#subject-full").value = subject ? subject.fullName : "";
   $("#subject-short").value = subject ? subject.short : "";
-  $("#subject-color").value = subject ? subject.color : "#5b8def";
   $("#subject-full").closest(".field").classList.remove("hidden");
   $("#subject-short").closest(".field").classList.remove("hidden");
-  $("#subject-color").closest(".field").classList.remove("hidden");
   $("#subject-save").dataset.mode = "subject";
   $("#subject-save").dataset.subjectId = subjectId || "";
   openModal("#subject-modal");
@@ -556,16 +590,19 @@ function saveSubjectFromModal() {
   const id = $("#subject-save").dataset.subjectId;
   const fullName = $("#subject-full").value.trim();
   const short = $("#subject-short").value.trim();
-  const color = $("#subject-color").value;
   if (!fullName) { toast("Full name is required", true); return; }
   if (id) {
     mutate((p) => {
       const s = subjectById(p, id);
-      if (s) { s.fullName = fullName; s.short = short || fullName.slice(0, 3); s.color = color; }
+      if (s) { s.fullName = fullName; s.short = short || fullName.slice(0, 3); }
     });
   } else {
     mutate((p) => {
-      p.catalog.push({ id: uid(), fullName, short: short || fullName.slice(0, 3), color });
+      p.catalog.push({
+        id: uid(), fullName,
+        short: short || fullName.slice(0, 3),
+        color: subjectColorForIndex(p.catalog.length)
+      });
     });
   }
   closeModal("#subject-modal");
@@ -1042,6 +1079,7 @@ async function finishDrag(x, y) {
           p.grid[key] = { kind: "all", lesson: { ...emptyLesson(), subjectId: source.subjectId } };
         });
       }
+      closeCatalogDrawer();
     } else if (source.type === "grid") {
       const fromKey = gridKey(source.dayId, source.periodIdx);
       if (fromKey === key) return;
@@ -1408,6 +1446,7 @@ function wireEvents() {
   $("#btn-undo").addEventListener("click", undo);
   $("#btn-redo").addEventListener("click", redo);
   $("#btn-toggle-catalog").addEventListener("click", () => $("#catalog").classList.toggle("open"));
+  $("#btn-close-catalog").addEventListener("click", closeCatalogDrawer);
   $("#btn-add-subject").addEventListener("click", () => openSubjectEditor(null));
 
   $("#backdrop").addEventListener("click", () => {
@@ -1590,6 +1629,12 @@ function wireEvents() {
   });
 
   document.addEventListener("pointerdown", (e) => {
+    const catalog = $("#catalog");
+    if (catalog.classList.contains("open") &&
+        !catalog.contains(e.target) &&
+        !e.target.closest("#btn-toggle-catalog")) {
+      closeCatalogDrawer();
+    }
     const pop = $("#cell-editor");
     if (!pop.classList.contains("hidden") && !pop.contains(e.target)) {
       if (!e.target.closest(".grid-cell")) pop.classList.add("hidden");
