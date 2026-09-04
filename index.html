@@ -28,9 +28,18 @@
         <div class="header-actions">
           <button id="btn-undo" class="icon-btn" title="Undo (Ctrl+Z)" aria-label="Undo">&#8630;</button>
           <button id="btn-redo" class="icon-btn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo">&#8631;</button>
-          <button id="btn-schedule" class="btn btn-ghost" title="Edit days and periods">Periods</button>
-          <button id="btn-theme" class="btn btn-ghost" title="Theme settings">Theme</button>
-          <button id="btn-export" class="btn btn-primary" title="Export PNG">Export</button>
+          <button id="btn-schedule" class="btn btn-ghost" title="Edit days and periods" aria-label="Edit days and periods">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            <span class="lbl">Periods</span>
+          </button>
+          <button id="btn-theme" class="btn btn-ghost" title="Theme settings" aria-label="Theme settings">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/></svg>
+            <span class="lbl">Theme</span>
+          </button>
+          <button id="btn-export" class="btn btn-primary" title="Export PNG" aria-label="Export PNG">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/></svg>
+            <span class="lbl">Export</span>
+          </button>
         </div>
       </header>
 

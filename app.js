@@ -908,11 +908,18 @@ function startPointerDown(e) {
 
   // On touch, dragging a subject from the catalog requires a deliberate hold
   // so a normal swipe scrolls the list instead of starting a drag.
+  // 500ms is long enough to distinguish from a scroll but fires before the
+  // browser's native long-press context menu would appear.
   const requireHold = pointerType === "touch" && source.type === "catalog";
-  const holdMs = requireHold ? 1000 : (pointerType === "touch" ? 120 : 0);
+  const holdMs = requireHold ? 500 : (pointerType === "touch" ? 120 : 0);
   let longPressTimer = pointerType === "touch"
     ? setTimeout(() => { if (!started) beginDrag(); }, holdMs)
     : null;
+
+  // Suppress the browser's long-press context menu while a drag gesture may be
+  // in progress (Chrome shows its own menu after ~500ms, which would cancel the drag).
+  const onContextMenu = (e) => e.preventDefault();
+  document.addEventListener("contextmenu", onContextMenu);
 
   function beginDrag() {
     started = true;
@@ -984,6 +991,7 @@ function startPointerDown(e) {
     document.removeEventListener("pointermove", onMove);
     document.removeEventListener("pointerup", onUp);
     document.removeEventListener("pointercancel", onCancel);
+    document.removeEventListener("contextmenu", onContextMenu);
     if (!started) return;
     finishDrag(ev.clientX, ev.clientY);
   }
@@ -993,6 +1001,7 @@ function startPointerDown(e) {
     document.removeEventListener("pointermove", onMove);
     document.removeEventListener("pointerup", onUp);
     document.removeEventListener("pointercancel", onCancel);
+    document.removeEventListener("contextmenu", onContextMenu);
     cancelDrag();
   }
 
