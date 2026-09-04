@@ -131,6 +131,7 @@ body.dragging { touch-action: none; user-select: none; -webkit-user-select: none
 .plan-title-input:hover { border-color: var(--border); }
 .plan-title-input:focus { outline: none; border-color: var(--accent); background: var(--panel-2); }
 .header-actions { display: flex; gap: 8px; align-items: center; }
+.header-actions .btn svg { width: 16px; height: 16px; flex: 0 0 auto; }
 
 /* Editor layout */
 .editor-body { flex: 1; display: flex; min-height: 0; }
@@ -180,6 +181,7 @@ body.dragging { touch-action: none; user-select: none; -webkit-user-select: none
   cursor: grab;
   touch-action: pan-y;
   -webkit-touch-callout: none;
+  -webkit-user-select: none;
   user-select: none;
 }
 .subject-card:hover { border-color: var(--accent); }
@@ -215,6 +217,7 @@ body.dragging { touch-action: none; user-select: none; -webkit-user-select: none
   width: 100%;
   max-width: 1200px;
   min-width: 0;
+  flex: none;
 }
 
 /* Title band */
@@ -380,9 +383,10 @@ body.dragging { touch-action: none; user-select: none; -webkit-user-select: none
 /* View toggle (fit / wide) */
 .view-toggle {
   position: fixed;
-  top: calc(var(--header-h) + 10px);
-  right: 12px;
-  z-index: 20;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 24;
   display: inline-flex;
   background: var(--panel-bg);
   border: 1px solid var(--border);
@@ -643,7 +647,10 @@ body.dragging { touch-action: none; user-select: none; -webkit-user-select: none
   .modal { padding: 0; align-items: flex-end; }
   .modal-card { width: 100%; border-radius: var(--radius) var(--radius) 0 0; max-height: 92vh; }
   .popover { left: 50%; transform: translateX(-50%); bottom: 8px; top: auto; }
-  .header-actions .btn-ghost { display: none; }
+  .app-header { gap: 6px; padding: 0 8px; }
+  .header-actions { gap: 6px; }
+  .header-actions .btn { width: 40px; min-width: 40px; padding: 0; }
+  .header-actions .btn .lbl { display: none; }
   body:not(.view-wide) .canvas-wrap { padding: 8px; }
   body:not(.view-wide) .export-root { padding: 12px; }
   body:not(.view-wide) .timetable { --day-col: 48px; }
