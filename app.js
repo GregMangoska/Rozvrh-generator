@@ -922,7 +922,7 @@ function startPointerDown(e) {
     $("#timetable").classList.add("dragging");
     suppressNextClick = true;
     setTimeout(() => { suppressNextClick = false; }, 0);
-    if (source.type === "catalog") $("#catalog").classList.remove("delete-zone");
+    if (source.type === "catalog") closeCatalogDrawer();
     createGhost();
     e.preventDefault();
   }
@@ -1440,6 +1440,8 @@ function wireEvents() {
 
   $("#btn-hamburger").addEventListener("click", openHamburger);
   $("#btn-new-plan").addEventListener("click", () => { closeHamburger(); openWizard(); });
+  $("#btn-schedule-sheet").addEventListener("click", () => { closeHamburger(); openSchedule(); });
+  $("#btn-theme-sheet").addEventListener("click", () => { closeHamburger(); openThemeModal(); });
   $("#btn-schedule").addEventListener("click", openSchedule);
   $("#btn-theme").addEventListener("click", openThemeModal);
   $("#btn-export").addEventListener("click", () => openModal("#export-modal"));
