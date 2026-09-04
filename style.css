@@ -149,6 +149,8 @@ body.dragging { touch-action: none; user-select: none; -webkit-user-select: none
   display: flex; align-items: center; justify-content: space-between;
   padding: 12px 12px 6px;
 }
+.catalog-head .head-actions { display: flex; gap: 6px; align-items: center; }
+.catalog-close { display: none; }
 .catalog-title { font-weight: 700; font-size: 0.95rem; letter-spacing: 0.3px; }
 .catalog-search {
   margin: 6px 12px;
@@ -571,17 +573,21 @@ body.dragging { touch-action: none; user-select: none; -webkit-user-select: none
 @media (max-width: 860px) {
   .catalog {
     position: fixed;
-    top: var(--header-h);
-    bottom: 0;
-    left: 0;
-    width: min(320px, 84vw);
+    left: 0; right: 0; bottom: 0;
+    top: auto;
+    width: 100%;
+    max-height: 56vh;
     z-index: 35;
-    transform: translateX(-100%);
+    transform: translateY(100%);
     transition: transform 0.2s ease;
-    box-shadow: var(--shadow);
+    border-right: none;
+    border-top: 1px solid var(--border);
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.45);
   }
-  .catalog.open { transform: translateX(0); }
+  .catalog.open { transform: translateY(0); }
   .catalog-fab { display: inline-flex; }
+  .catalog-close { display: inline-flex; }
   .canvas-wrap { padding: 12px; }
 }
 @media (min-width: 861px) {

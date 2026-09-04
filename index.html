@@ -38,7 +38,10 @@
         <aside id="catalog" class="catalog">
           <div class="catalog-head">
             <div class="catalog-title">Subjects</div>
-            <button id="btn-add-subject" class="icon-btn" title="Add subject" aria-label="Add subject">+</button>
+            <div class="head-actions">
+              <button id="btn-close-catalog" class="icon-btn catalog-close" title="Close" aria-label="Close subjects">&#10005;</button>
+              <button id="btn-add-subject" class="icon-btn" title="Add subject" aria-label="Add subject">+</button>
+            </div>
           </div>
           <input id="catalog-search" class="catalog-search" type="search" placeholder="Search subjects…" />
           <div id="catalog-list" class="catalog-list"></div>
@@ -52,7 +55,7 @@
               <div id="timetable" class="timetable"></div>
             </div>
           </div>
-          <button id="btn-toggle-catalog" class="btn catalog-fab hidden">Subjects</button>
+          <button id="btn-toggle-catalog" class="btn catalog-fab">Subjects</button>
         </main>
       </div>
     </div>
@@ -279,7 +282,6 @@
         <div class="modal-body">
           <div class="field"><label for="subject-full">Full name</label><input id="subject-full" type="text" placeholder="Mathematics" /></div>
           <div class="field"><label for="subject-short">Short label</label><input id="subject-short" type="text" placeholder="M" maxlength="8" /></div>
-          <div class="field"><label for="subject-color">Color</label><input id="subject-color" type="color" value="#5b8def" /></div>
         </div>
         <div class="modal-foot">
           <button id="subject-cancel" class="btn">Cancel</button>
