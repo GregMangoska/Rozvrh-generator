@@ -178,7 +178,8 @@ body.dragging { touch-action: none; user-select: none; -webkit-user-select: none
   background: var(--panel-2);
   border: 1px solid var(--border);
   cursor: grab;
-  touch-action: none;
+  touch-action: pan-y;
+  -webkit-touch-callout: none;
   user-select: none;
 }
 .subject-card:hover { border-color: var(--accent); }
@@ -237,6 +238,7 @@ body.dragging { touch-action: none; user-select: none; -webkit-user-select: none
 .timetable {
   display: grid;
   --day-col: 96px;
+  --period-col: 140px;
   grid-template-columns: var(--day-col) repeat(var(--period-count, 8), minmax(0, 1fr));
   width: 100%;
   border-top: 1px solid var(--tt-grid-line, #cbd5e1);
@@ -374,6 +376,29 @@ body.dragging { touch-action: none; user-select: none; -webkit-user-select: none
   z-index: 25;
   box-shadow: var(--shadow);
 }
+
+/* View toggle (fit / wide) */
+.view-toggle {
+  position: fixed;
+  top: calc(var(--header-h) + 10px);
+  right: 12px;
+  z-index: 20;
+  display: inline-flex;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+  box-shadow: var(--shadow);
+}
+.view-toggle .btn {
+  min-height: 32px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  border: none;
+  background: transparent;
+}
+.view-toggle .btn.active { background: var(--accent); color: #fff; }
 
 /* Sheets / modals / popover */
 .backdrop {
@@ -599,16 +624,16 @@ body.dragging { touch-action: none; user-select: none; -webkit-user-select: none
   .catalog.open { transform: translateY(0); }
   .catalog-fab { display: inline-flex; }
   .catalog-close { display: inline-flex; }
-  .canvas-wrap { padding: 12px; }
-  .timetable { --day-col: 64px; }
-  .tt-cell { min-height: 64px; }
-  .period-head .p-label { font-size: 0.72rem; }
-  .period-head .p-time { font-size: 0.6rem; }
-  .day-label { font-size: 0.78rem; }
-  .lesson .subject-short { font-size: 0.95rem; }
-  .lesson .meta { font-size: 0.62rem; }
-  .lesson-oe .half .subject-short { font-size: 0.85rem; }
-  .lesson-oe .half .meta { font-size: 0.58rem; }
+  body:not(.view-wide) .canvas-wrap { padding: 12px; }
+  body:not(.view-wide) .timetable { --day-col: 64px; }
+  body:not(.view-wide) .tt-cell { min-height: 64px; }
+  body:not(.view-wide) .period-head .p-label { font-size: 0.72rem; }
+  body:not(.view-wide) .period-head .p-time { font-size: 0.6rem; }
+  body:not(.view-wide) .day-label { font-size: 0.78rem; }
+  body:not(.view-wide) .lesson .subject-short { font-size: 0.95rem; }
+  body:not(.view-wide) .lesson .meta { font-size: 0.62rem; }
+  body:not(.view-wide) .lesson-oe .half .subject-short { font-size: 0.85rem; }
+  body:not(.view-wide) .lesson-oe .half .meta { font-size: 0.58rem; }
 }
 @media (min-width: 861px) {
   .catalog-fab { display: none; }
@@ -619,19 +644,27 @@ body.dragging { touch-action: none; user-select: none; -webkit-user-select: none
   .modal-card { width: 100%; border-radius: var(--radius) var(--radius) 0 0; max-height: 92vh; }
   .popover { left: 50%; transform: translateX(-50%); bottom: 8px; top: auto; }
   .header-actions .btn-ghost { display: none; }
-  .canvas-wrap { padding: 8px; }
-  .export-root { padding: 12px; }
-  .timetable { --day-col: 48px; }
-  .tt-cell { min-height: 52px; padding: 3px; }
-  .period-head { min-height: 38px; padding: 4px 2px; }
-  .period-head .p-label { font-size: 0.66rem; }
-  .period-head .p-time { display: none; }
-  .day-label { font-size: 0.72rem; padding: 4px 2px; }
-  .lesson { min-height: 46px; padding: 3px 4px; }
-  .lesson .subject-short { font-size: 0.85rem; }
-  .lesson .meta { font-size: 0.58rem; }
-  .lesson-oe { min-height: 46px; }
-  .lesson-oe .half { min-height: 22px; }
-  .lesson-oe .half .subject-short { font-size: 0.78rem; }
-  .lesson-oe .half .meta { font-size: 0.55rem; }
+  body:not(.view-wide) .canvas-wrap { padding: 8px; }
+  body:not(.view-wide) .export-root { padding: 12px; }
+  body:not(.view-wide) .timetable { --day-col: 48px; }
+  body:not(.view-wide) .tt-cell { min-height: 52px; padding: 3px; }
+  body:not(.view-wide) .period-head { min-height: 38px; padding: 4px 2px; }
+  body:not(.view-wide) .period-head .p-label { font-size: 0.66rem; }
+  body:not(.view-wide) .period-head .p-time { display: none; }
+  body:not(.view-wide) .day-label { font-size: 0.72rem; padding: 4px 2px; }
+  body:not(.view-wide) .lesson { min-height: 46px; padding: 3px 4px; }
+  body:not(.view-wide) .lesson .subject-short { font-size: 0.85rem; }
+  body:not(.view-wide) .lesson .meta { font-size: 0.58rem; }
+  body:not(.view-wide) .lesson-oe { min-height: 46px; }
+  body:not(.view-wide) .lesson-oe .half { min-height: 22px; }
+  body:not(.view-wide) .lesson-oe .half .subject-short { font-size: 0.78rem; }
+  body:not(.view-wide) .lesson-oe .half .meta { font-size: 0.55rem; }
+}
+
+/* Wide (overflow) view: natural full-size timetable with horizontal scroll */
+body.view-wide .canvas-wrap { justify-content: flex-start; }
+body.view-wide .export-root { width: max-content; max-width: none; min-width: 320px; }
+body.view-wide .timetable {
+  grid-template-columns: var(--day-col) repeat(var(--period-count, 8), var(--period-col));
+  width: max-content;
 }

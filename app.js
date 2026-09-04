@@ -904,14 +904,19 @@ function startPointerDown(e) {
 
   const startX = e.clientX, startY = e.clientY;
   const pointerType = e.pointerType || "mouse";
-  const startTime = Date.now();
   let started = false;
+
+  // On touch, dragging a subject from the catalog requires a deliberate hold
+  // so a normal swipe scrolls the list instead of starting a drag.
+  const requireHold = pointerType === "touch" && source.type === "catalog";
+  const holdMs = requireHold ? 1000 : (pointerType === "touch" ? 120 : 0);
   let longPressTimer = pointerType === "touch"
-    ? setTimeout(() => { if (!started) beginDrag(); }, 120)
+    ? setTimeout(() => { if (!started) beginDrag(); }, holdMs)
     : null;
 
   function beginDrag() {
     started = true;
+    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
     drag = {
       source, ghostContent,
       x: startX, y: startY,
@@ -923,6 +928,7 @@ function startPointerDown(e) {
     suppressNextClick = true;
     setTimeout(() => { suppressNextClick = false; }, 0);
     if (source.type === "catalog") closeCatalogDrawer();
+    if (pointerType === "touch") drag._cleanupTouchScroll = preventTouchScroll();
     createGhost();
     e.preventDefault();
   }
@@ -951,6 +957,11 @@ function startPointerDown(e) {
     if (!started) {
       const dx = ev.clientX - startX, dy = ev.clientY - startY;
       const dist = Math.sqrt(dx * dx + dy * dy);
+      if (requireHold) {
+        // Movement before the hold is treated as a scroll, not a drag.
+        if (dist > 10 && longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+        return;
+      }
       if (dist > 5) {
         if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
         beginDrag();
@@ -1031,6 +1042,12 @@ function autoScroll(x, y) {
   if (dx || dy) scroller.scrollBy(dx, dy);
 }
 
+function preventTouchScroll() {
+  const onTouchMove = (e) => { e.preventDefault(); };
+  document.addEventListener("touchmove", onTouchMove, { passive: false });
+  return () => document.removeEventListener("touchmove", onTouchMove, { passive: false });
+}
+
 function cancelDrag() {
   cleanupDrag();
 }
@@ -1040,6 +1057,7 @@ function cleanupDrag() {
   $("#timetable").classList.remove("dragging");
   $("#catalog").classList.remove("delete-zone");
   $$(".grid-cell").forEach((c) => c.classList.remove("drop-valid", "drop-replace"));
+  if (drag && drag._cleanupTouchScroll) { drag._cleanupTouchScroll(); }
   if (drag && drag.ghost) drag.ghost.remove();
   drag = null;
 }
@@ -1265,14 +1283,27 @@ function fileToDataUrl(file, maxSide) {
 
 let exportScale = 2;
 
+let viewMode = "fit";
+
+function applyViewMode(mode) {
+  viewMode = mode === "wide" ? "wide" : "fit";
+  document.body.classList.toggle("view-wide", viewMode === "wide");
+  $$("#view-toggle .btn").forEach((b) => b.classList.toggle("active", b.dataset.view === viewMode));
+  try { localStorage.setItem("ttg_view", viewMode); } catch (e) { /* ignore */ }
+}
+
 async function doExport() {
   const plan = activePlan();
   const includeHeader = $("#export-header").checked;
   const titleBand = $("#title-band");
   titleBand.classList.toggle("hide-title", !includeHeader);
   document.body.classList.add("exporting");
+  // Always export at the natural full width, independent of the Fit/Wide preview.
+  const wasWide = document.body.classList.contains("view-wide");
+  if (!wasWide) document.body.classList.add("view-wide");
   try {
     const node = $("#export-root");
+    void node.offsetWidth; // force reflow so the wide layout is applied before capture
     const t = plan.theme;
     const bgColor = (t.pageBg && t.pageBg.type === "color") ? (t.pageBg.color || "#ffffff") : "#ffffff";
     const dataUrl = await htmlToImage.toPng(node, { pixelRatio: exportScale, backgroundColor: bgColor, cacheBust: true });
@@ -1288,6 +1319,7 @@ async function doExport() {
   } finally {
     titleBand.classList.remove("hide-title");
     document.body.classList.remove("exporting");
+    if (!wasWide) document.body.classList.remove("view-wide");
   }
 }
 
@@ -1445,6 +1477,11 @@ function wireEvents() {
   $("#btn-schedule").addEventListener("click", openSchedule);
   $("#btn-theme").addEventListener("click", openThemeModal);
   $("#btn-export").addEventListener("click", () => openModal("#export-modal"));
+  $("#view-toggle").addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-view]");
+    if (!btn) return;
+    applyViewMode(btn.dataset.view);
+  });
   $("#btn-undo").addEventListener("click", undo);
   $("#btn-redo").addEventListener("click", redo);
   $("#btn-toggle-catalog").addEventListener("click", () => $("#catalog").classList.toggle("open"));
@@ -1693,6 +1730,9 @@ async function clearPlanFlow(id) {
 function init() {
   load();
   wireEvents();
+  let savedView = "fit";
+  try { savedView = localStorage.getItem("ttg_view") || "fit"; } catch (e) { /* ignore */ }
+  applyViewMode(savedView);
   if (state.plans.length === 0) {
     showLanding();
   } else {
